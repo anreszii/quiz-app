@@ -26,13 +26,31 @@ class AuthService {
       const { data } = await authApi.login(this.email, this.password);
       storage.set("token", JSON.stringify(data.token));
       storage.set("refreshToken", JSON.stringify(data.refresh_token));
-      DevSettings.reload();
-      RNRestart.Restart();
+      if (__DEV__) {
+        DevSettings.reload();
+      } else {
+        RNRestart.Restart();
+      }
     } catch (e: any) {
       console.log(e, "auth");
       return e.response;
     }
   };
+
+  logout = () => {
+    try {
+      const storage = new MMKV();
+      storage.delete("token");
+      storage.delete("refreshToken");
+      if (__DEV__) {
+        DevSettings.reload();
+      } else {
+        RNRestart.Restart();
+      }
+    } catch (e: any) {
+      console.log(e)
+    }
+  }
 }
 
 export const authService = new AuthService();

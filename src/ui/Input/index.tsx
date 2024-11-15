@@ -5,8 +5,9 @@ import {
   StyleSheet,
   TextInputProps,
   Platform,
+  Animated,
 } from "react-native";
-import React from "react";
+import React, { useRef } from "react";
 import { Typography } from "ui";
 
 interface InputProps extends TextInputProps {
@@ -21,6 +22,28 @@ export const Input: React.FC<InputProps> = ({
   errorText,
   ...props
 }) => {
+  const translateY = useRef(
+    new Animated.Value(Platform.OS === "ios" ? 12.5 : 15)
+  ).current;
+
+  const handleFocus = () => {
+    Animated.timing(translateY, {
+      toValue: Platform.OS === "ios" ? 0 : 2.5,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleBlur = () => {
+    if (!(props.value && props.value.replaceAll(" ", "").length !== 0)) {
+      Animated.timing(translateY, {
+        toValue: Platform.OS === "ios" ? 12.5 : 15,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
   return (
     <View style={styles.wrapper}>
       <View
@@ -30,13 +53,15 @@ export const Input: React.FC<InputProps> = ({
           status === "error" && { borderColor: "#FC9191" },
         ]}
       >
-        <Typography style={styles.title} gradient>
+        <Animated.Text style={[styles.title, { transform: [{ translateY }] }]}>
           {label}
-        </Typography>
+        </Animated.Text>
         <TextInput
           style={styles.input}
           autoCapitalize="none"
           underlineColorAndroid="transparent"
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           {...props}
         />
       </View>
@@ -66,6 +91,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     fontSize: 18,
     fontWeight: "400",
+    color: "#9192FC",
   },
   input: {
     fontSize: 18,

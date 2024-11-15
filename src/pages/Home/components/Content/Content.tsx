@@ -13,12 +13,13 @@ const Content = observer(() => {
   const { width } = useWindowDimensions();
   const navigation = useTypedNavigation();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     const fetchData = async () => {
       await getUser();
+
       setLoading(false);
     };
 
@@ -29,33 +30,44 @@ const Content = observer(() => {
     navigation.navigate("Questions");
   };
 
+  const handleWatchResult = () => {
+    navigation.navigate("Result");
+  };
+
   return (
     <>
       {loading ? (
-        <Loader />
+        <Loader/>
       ) : (
         <View style={styles.wrapper}>
-          <Header />
+          <Header/>
           <Section style={styles.container}>
-            <Typography gradient>{dayInfo?.day_title}</Typography>
-            <RenderHtml
-              contentWidth={width - 20}
-              source={{ html: dayInfo?.description || "" }}
-              systemFonts={[...defaultSystemFonts, "Inter"]}
-              tagsStyles={{
-                p: {
-                  fontSize: 18,
-                  color: "#000",
-                },
-              }}
-            />
-            <Button
-              style={[{ opacity: dayInfo?.test_finished ? 0.25 : 1 }]}
-              disabled={dayInfo?.test_finished}
-              onPress={handleStartTest}
-            >
-              Начать тест
-            </Button>
+            {dayInfo?.test_finished ? (
+              <>
+                <Typography gradient style={styles.completeTitle}>
+                  Поздравляем,{"\n"}Вы прошли {dayInfo?.day_number}/10 дней
+                </Typography>
+                <Button onPress={handleWatchResult}>
+                  Посмотреть результаты
+                </Button>
+              </>
+            ) : (
+              <>
+                <Typography gradient>{dayInfo?.day_title}</Typography>
+                <RenderHtml
+                  contentWidth={width - 20}
+                  source={{ html: dayInfo?.description || "" }}
+                  systemFonts={[...defaultSystemFonts, "Inter"]}
+                  tagsStyles={{
+                    p: {
+                      fontSize: 18,
+                      color: "#000",
+                    },
+                  }}
+                />
+                <Button onPress={handleStartTest}>Начать тест</Button>
+              </>
+            )}
           </Section>
         </View>
       )}
@@ -69,6 +81,9 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     gap: 10,
+  },
+  completeTitle: {
+    marginBottom: 20,
   },
 });
 

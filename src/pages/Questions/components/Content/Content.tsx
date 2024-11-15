@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Loader } from "ui";
+import { Typography, Loader, Button } from "ui";
 import { Header, Section } from "components";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { observer } from "mobx-react-lite";
 import { quizService } from "shared/services";
 import { useTypedNavigation } from "shared/hooks/useTypedNavigation";
@@ -9,15 +15,42 @@ import { QuestionIcon } from "shared/icons";
 import { CommonActions } from "@react-navigation/native";
 
 const Content = observer(() => {
-  const { getQuestion, currentNumber, sendAnswer, currentQuestion } =
-    quizService;
+  const {
+    getQuestion,
+    currentNumber,
+    sendAnswer,
+    currentQuestion,
+    goBack,
+    initialGet,
+  } = quizService;
 
   const navigation = useTypedNavigation();
 
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [focus, setFocus] = useState(0);
+  const [opacity] = useState(new Animated.Value(1));
+  const [isInit, setIsInit] = useState(false);
+  const [error, setError] = useState(false)
 
   useEffect(() => {
-    setLoading(true);
+    Animated.timing(opacity, {
+      toValue: focus !== 0 ? 0.25 : 1,
+      duration: focus !== 0 ? 150 : 250,
+      useNativeDriver: true,
+    }).start();
+  }, [focus]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const initial = async () => {
+      await initialGet();
+      setIsInit(true);
+    };
+
+    initial();
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       const data = await getQuestion();
 
@@ -30,47 +63,110 @@ const Content = observer(() => {
         );
       }
 
-      setLoading(false);
+      if (data.selected_answer && typeof data.selected_answer !== "boolean" && !data.test_finished) {
+        handleFocusAnswer(data.selected_answer);
+      } else {
+        setFocus(0);
+      }
+
+      setIsLoading(false);
     };
 
-    fetchData();
-  }, [currentNumber]);
+    if (isInit) {
+      fetchData();
+    }
+  }, [currentNumber, isInit]);
 
-  const handleAnswer = (answerId: number) => {
-    sendAnswer(currentQuestion?.question_id || 0, answerId);
+  const handleFocusAnswer = (answerId: number) => {
+    if (focus === 0 || focus !== answerId) {
+      setFocus(answerId);
+    } else {
+      setFocus(0);
+    }
+  };
+
+  const handleAnswer = async () => {
+    if (focus === -1 || focus === 0) {
+      setError(true)
+      setTimeout(() => {
+        setError(false)
+      }, 1500)
+      return;
+    }
+    await sendAnswer(currentQuestion?.question_id || 0, focus);
+  };
+
+  const handleBack = async () => {
+    setFocus(-1);
+
+    if (currentQuestion?.question_number === 1) {
+      navigation.goBack();
+    } else {
+      await goBack();
+    }
   };
 
   return (
     <>
-      {loading ? (
-        <Loader />
+      {isLoading ? (
+        <Loader/>
       ) : (
-        <View style={styles.wrapper}>
-          <Header />
-          <Section style={styles.container}>
-            <Typography style={styles.title} gradient>
-              Вопрос {currentQuestion?.question_number} из{" "}
-              {currentQuestion?.questions_count}
-            </Typography>
-            <Typography style={styles.question}>
-              {currentQuestion?.question_title}
-            </Typography>
-          </Section>
-          {currentQuestion?.answers.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={{ flex: 1 }}
-              onPress={() => handleAnswer(item.answer_id)}
-            >
-              <Section style={styles.answer}>
-                <QuestionIcon />
-                <Typography style={styles.answerTitle}>
-                  {item.answer_title}
-                </Typography>
-              </Section>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <>
+          <View style={styles.wrapper}>
+            <Header opacity={opacity}/>
+            <Section style={[styles.container, { opacity }]}>
+              <Typography style={styles.title} gradient>
+                Вопрос {currentQuestion?.question_number} из{" "}
+                {currentQuestion?.questions_count}
+              </Typography>
+              <Typography style={styles.question}>
+                {currentQuestion?.question_title}
+              </Typography>
+            </Section>
+            {currentQuestion?.answers.map((item, index) => (
+              <Animated.View
+                key={index}
+                style={[{ flex: 1 }, focus !== item.answer_id && { opacity }]}
+              >
+                <TouchableOpacity
+                  style={[
+                    { flex: 1 },
+                    {
+                      borderWidth: 2,
+                      borderColor:
+                        focus === item.answer_id ? "#9192FC" : "#F8FBFF",
+                      borderRadius: 10,
+                    },
+                  ]}
+                  onPress={() => handleFocusAnswer(item.answer_id)}
+                  activeOpacity={1}
+                >
+                  <Section style={styles.answer}>
+                    <QuestionIcon/>
+                    <Typography style={styles.answerTitle}>
+                      {item.answer_title}
+                    </Typography>
+                  </Section>
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
+          </View>
+          <Animated.View
+            style={[
+              styles.footerButtons,
+              { opacity: focus === -1 ? opacity : 1 }
+            ]}
+          >
+            <Button type="red" onPress={handleBack}>
+              Назад
+            </Button>
+            {error ? <Button
+              type="error"
+              disabled>Выберите вариант ответа</Button> : <Button
+              onPress={handleAnswer}>{(currentQuestion?.questions_count || 0) === currentQuestion?.question_number ? "Завершить тест" : "Далее"}</Button>}
+
+          </Animated.View>
+        </>
       )}
     </>
   );
@@ -83,6 +179,7 @@ const styles = StyleSheet.create({
   wrapper: {
     gap: 10,
     flex: 1,
+    marginBottom: 5,
   },
   title: {},
   question: {
@@ -98,6 +195,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#000",
     marginLeft: 15,
+    marginRight: 15,
+    fontWeight: Platform.OS === "android" ? "800" : "600",
+  },
+  footerButtons: {
+    gap: 5,
   },
 });
 
