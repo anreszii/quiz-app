@@ -1,12 +1,13 @@
 import React from "react";
-import { Animated, Dimensions, StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+import Animated from "react-native-reanimated";
 import FastImage from "react-native-fast-image";
 import { Logo } from "ui";
 
 const Background = require("../../../assets/images/Background.png");
 
 interface HeaderProps {
-  opacity?: Animated.Value;
+  opacity?: Animated.SharedValue<number>;
 }
 
 const Header: React.FC<HeaderProps> = ({ opacity }) => {

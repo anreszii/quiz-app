@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 import { Section } from "components";
 import { Typography } from "ui";
@@ -14,7 +14,7 @@ const ButtonArrow: React.FC<ButtonArrowProps> = ({ title }) => {
     <TouchableOpacity style={styles.wrapper}>
       <Section style={styles.container}>
         <Typography style={styles.title}>{title}</Typography>
-        <RightIcon/>
+        <RightIcon />
       </Section>
     </TouchableOpacity>
   );
@@ -22,7 +22,7 @@ const ButtonArrow: React.FC<ButtonArrowProps> = ({ title }) => {
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: "100%"
+    width: "100%",
   },
   container: {
     flexDirection: "row",
@@ -33,6 +33,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
   },
-})
+});
 
 export default ButtonArrow;

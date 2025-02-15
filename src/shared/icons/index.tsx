@@ -2,7 +2,7 @@ import Svg, {
   Circle, ClipPath,
   Defs, G,
   LinearGradient,
-  Path, Rect,
+  Path,
   Stop,
   SvgProps,
 } from "react-native-svg";

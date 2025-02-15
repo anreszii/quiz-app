@@ -1,39 +1,34 @@
 import React from "react";
-import { Animated, Dimensions, SafeAreaView, StyleSheet, TouchableOpacity, View } from "react-native";
-import FastImage from "react-native-fast-image";
-import { Logo } from "ui";
+import { SafeAreaView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { NativeStackHeaderProps } from "@react-navigation/native-stack";
 import { InfoIcon, LogoutIcon, ProfileIcon } from "shared/icons";
-import Svg, { Path } from "react-native-svg";
 import { authService } from "shared/services";
 
-interface PanelProps extends NativeStackHeaderProps {
-}
+interface PanelProps extends NativeStackHeaderProps {}
 
 const Panel: React.FC<PanelProps> = ({ navigation, options }) => {
-
-  const { logout } = authService
+  const { logout } = authService;
 
   const handleNavigateToProfile = () => {
     navigation.navigate("Profile");
-  }
+  };
 
   const handleNavigateToInfo = () => {
     navigation.navigate("Info");
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <TouchableOpacity onPress={handleNavigateToProfile}>
-          <ProfileIcon/>
+          <ProfileIcon />
         </TouchableOpacity>
         <View style={styles.rightPanel}>
           <TouchableOpacity onPress={handleNavigateToInfo}>
-            <InfoIcon/>
+            <InfoIcon />
           </TouchableOpacity>
           <TouchableOpacity onPress={logout}>
-            <LogoutIcon/>
+            <LogoutIcon />
           </TouchableOpacity>
         </View>
       </View>
@@ -54,7 +49,7 @@ const styles = StyleSheet.create({
   },
   rightPanel: {
     flexDirection: "row",
-    gap: 25.5
+    gap: 25.5,
   },
 });
 
