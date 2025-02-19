@@ -6,7 +6,7 @@ import {
   TextInputProps,
   Platform,
 } from "react-native";
-import React from "react";
+import React, { useRef } from "react";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -26,6 +26,8 @@ export const Input: React.FC<InputProps> = ({
   errorText,
   ...props
 }) => {
+  const ref = useRef<TextInput>(null);
+
   const translateY = useSharedValue(Platform.OS === "ios" ? 12.5 : 15);
 
   const animatedTitleStyle = useAnimatedStyle(() => {
@@ -49,7 +51,10 @@ export const Input: React.FC<InputProps> = ({
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View
+      style={styles.wrapper}
+      onTouchStart={() => (ref ? ref.current?.focus() : undefined)}
+    >
       <View
         style={[
           styles.container,
@@ -61,6 +66,7 @@ export const Input: React.FC<InputProps> = ({
           {label}
         </Animated.Text>
         <TextInput
+          ref={ref}
           style={styles.input}
           autoCapitalize="none"
           underlineColorAndroid="transparent"
