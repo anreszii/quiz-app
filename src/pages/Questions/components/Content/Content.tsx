@@ -94,7 +94,6 @@ const Content = observer(() => {
 
   useEffect(() => {
     if (currentQuestion) {
-
     }
   }, [currentQuestion]);
 
@@ -137,6 +136,7 @@ const Content = observer(() => {
     focus: number;
     opacity: Animated.SharedValue<number>;
     onPress: (answerId: number) => void;
+    disabled: boolean;
   }
 
   const AnswerItem: React.FC<AnswerItemProps> = ({
@@ -144,6 +144,7 @@ const Content = observer(() => {
     focus,
     opacity,
     onPress,
+    disabled,
   }) => {
     const animatedStyle = useAnimatedStyle(
       () => ({
@@ -155,6 +156,7 @@ const Content = observer(() => {
     return (
       <Animated.View style={[{ flex: 1 }, animatedStyle]}>
         <TouchableOpacity
+          disabled={disabled}
           style={[
             { flex: 1 },
             {
@@ -201,11 +203,12 @@ const Content = observer(() => {
                 focus={focus}
                 opacity={opacity}
                 onPress={handleFocusAnswer}
+                disabled={isLoadingAnswer}
               />
             ))}
           </View>
           <Animated.View style={[styles.footerButtons, animatedFooterStyle]}>
-            <Button type="red" onPress={handleBack}>
+            <Button type="red" onPress={handleBack} disabled={isLoadingAnswer}>
               Назад
             </Button>
             {error ? (
